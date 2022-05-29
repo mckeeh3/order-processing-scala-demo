@@ -185,23 +185,25 @@ class ShoppingCart(context: EventSourcedEntityContext) extends AbstractShoppingC
 
   private def updateState(state: CartState, event: CartCheckedOut): CartState = {
     state
-      .copy(checkedOutUtc = Some(TimeTo.now()))
+      .copy(checkedOutUtc = TimeTo.now())
   }
 
   private def updateState(state: CartState, event: CartDeleted): CartState = {
     state
-      .copy(deletedUtc = Some(TimeTo.now()))
+      .copy(deletedUtc = TimeTo.now())
   }
 
   private def eventFor(state: CartState, command: api.AddLineItemCommand): ItemAdded = {
     ItemAdded(
       cartId = command.cartId,
       customerId = command.customerId,
-      lineItem = Some(LineItem(
-        skuId = command.skuId,
-        skuName = command.skuName,
-        quantity = command.quantity
-      ))
+      lineItem = Some(
+        LineItem(
+          skuId = command.skuId,
+          skuName = command.skuName,
+          quantity = command.quantity
+        )
+      )
     )
   }
 
@@ -257,11 +259,13 @@ class ShoppingCart(context: EventSourcedEntityContext) extends AbstractShoppingC
     api.ShoppingCart(
       cartId = state.cartId,
       customerId = state.customerId,
-      lineItems = state.lineItems.map(item => api.LineItem(
-        skuId = item.skuId,
-        skuName = item.skuName,
-        quantity = item.quantity
-      )),
+      lineItems = state.lineItems.map(item =>
+        api.LineItem(
+          skuId = item.skuId,
+          skuName = item.skuName,
+          quantity = item.quantity
+        )
+      ),
       checkedOutUtc = state.checkedOutUtc,
       deletedUtc = state.deletedUtc
     )

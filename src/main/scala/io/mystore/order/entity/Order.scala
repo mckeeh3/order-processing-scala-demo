@@ -25,10 +25,10 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
   override def releasedOrder(state: OrderState, command: api.ReleasedOrderCommand): EventSourcedEntity.Effect[Empty] =
     handle(state, command)
 
-  override def shippedOrderItem(state: OrderState, command: api.ShippedOrderSkuCommand): EventSourcedEntity.Effect[Empty] =
+  override def shippedOrderItem(state: OrderState, command: api.ShippedAllOrderSkusCommand): EventSourcedEntity.Effect[Empty] =
     handle(state, command)
 
-  override def releasedOrderItem(state: OrderState, command: api.ReleasedOrderSkuCommand): EventSourcedEntity.Effect[Empty] =
+  override def releasedOrderItem(state: OrderState, command: api.ReleasedOrderItemCommand): EventSourcedEntity.Effect[Empty] =
     handle(state, command)
 
   override def deliveredOrder(state: OrderState, command: api.DeliveredOrderCommand): EventSourcedEntity.Effect[Empty] =
@@ -68,15 +68,33 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
     updateState(state, event)
 
   private def reject(state: OrderState, command: api.DeliveredOrderCommand): Option[EventSourcedEntity.Effect[Empty]] = {
-    None
+    if (state.canceledUtc.isDefined) {
+      Some(effects.error("Order is canceled"))
+    } else if (state.shippedUtc.isEmpty) {
+      Some(effects.error("Order is not shipped"))
+    } else {
+      None
+    }
   }
 
   private def reject(state: OrderState, command: api.ReturnedOrderCommand): Option[EventSourcedEntity.Effect[Empty]] = {
-    None
+    if (state.canceledUtc.isDefined) {
+      Some(effects.error("Order is canceled"))
+    } else if (state.deliveredUtc.isEmpty) {
+      Some(effects.error("Order is not delivered"))
+    } else {
+      None
+    }
   }
 
   private def reject(state: OrderState, command: api.CanceledOrderCommand): Option[EventSourcedEntity.Effect[Empty]] = {
-    None
+    if (state.shippedUtc.isEmpty) {
+      Some(effects.error("Order is not shipped"))
+    } else if (state.deliveredUtc.isDefined) {
+      Some(effects.error("Order is already delivered"))
+    } else {
+      None
+    }
   }
 
   private def handle(state: OrderState, command: api.CreateOrderCommand): EventSourcedEntity.Effect[Empty] = {
@@ -103,7 +121,7 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
       .thenReply(_ => Empty.defaultInstance)
   }
 
-  private def handle(state: OrderState, command: api.ShippedOrderSkuCommand): EventSourcedEntity.Effect[Empty] = {
+  private def handle(state: OrderState, command: api.ShippedAllOrderSkusCommand): EventSourcedEntity.Effect[Empty] = {
     log.info("state: {}\nReleasedOrderCommand: {}", state, command)
 
     effects
@@ -111,7 +129,7 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
       .thenReply(_ => Empty.defaultInstance)
   }
 
-  private def handle(state: OrderState, command: api.ReleasedOrderSkuCommand): EventSourcedEntity.Effect[Empty] = {
+  private def handle(state: OrderState, command: api.ReleasedOrderItemCommand): EventSourcedEntity.Effect[Empty] = {
     log.info("state: {}\nReleasedOrderCommand: {}", state, command)
 
     effects
@@ -157,31 +175,51 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
   }
 
   private def updateState(state: OrderState, event: OrderShipped) = {
-    state
+    state.copy(
+      shippedUtc = event.shippedUtc
+    )
   }
 
   private def updateState(state: OrderState, event: OrderReleased) = {
-    state
+    state.copy(
+      shippedUtc = event.shippedUtc
+    )
   }
 
   private def updateState(state: OrderState, event: OrderDelivered) = {
-    state
+    state.copy(
+      deliveredUtc = event.deliveredUtc
+    )
   }
 
   private def updateState(state: OrderState, event: OrderReturned) = {
-    state
+    state.copy(
+      returnedUtc = event.returnedUtc
+    )
   }
 
   private def updateState(state: OrderState, event: OrderCancelled) = {
-    state
+    state.copy(
+      canceledUtc = event.canceledUtc
+    )
   }
 
   private def updateState(state: OrderState, event: OrderItemShipped) = {
-    state
+    state.copy(
+      orderItems = state.orderItems.map {
+        case item if item.skuId == event.skuId => item.copy(shippedUtc = event.shippedUtc)
+        case item                              => item
+      }
+    )
   }
 
   private def updateState(state: OrderState, event: OrderItemReleased) = {
-    state
+    state.copy(
+      orderItems = state.orderItems.map {
+        case item if item.skuId == event.skuId => item.copy(shippedUtc = event.shippedUtc)
+        case item                              => item
+      }
+    )
   }
 
   private def eventFor(state: OrderState, command: api.CreateOrderCommand) = {
@@ -202,7 +240,7 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
   private def eventFor(state: OrderState, command: api.ShippedOrderCommand) = {
     OrderShipped(
       orderId = command.orderId,
-      shippedUtc = Some(TimeTo.now())
+      shippedUtc = TimeTo.now()
     )
   }
 
@@ -212,40 +250,40 @@ class Order(context: EventSourcedEntityContext) extends AbstractOrder {
     )
   }
 
-  private def eventFor(state: OrderState, command: api.ShippedOrderSkuCommand) = {
+  private def eventFor(state: OrderState, command: api.ShippedAllOrderSkusCommand) = {
     OrderItemShipped(
       orderId = command.orderId,
       skuId = command.skuId,
-      shippedUtc = Some(TimeTo.now())
+      shippedUtc = TimeTo.now()
     )
   }
 
-  private def eventFor(state: OrderState, command: api.ReleasedOrderSkuCommand) = {
+  private def eventFor(state: OrderState, command: api.ReleasedOrderItemCommand) = {
     OrderItemReleased(
       orderId = command.orderId,
       skuId = command.skuId,
-      shippedUtc = Some(TimeTo.zero())
+      shippedUtc = TimeTo.zero()
     )
   }
 
   private def eventFor(state: OrderState, command: api.DeliveredOrderCommand) = {
     OrderDelivered(
       orderId = command.orderId,
-      deliveredUtc = Some(TimeTo.now())
+      deliveredUtc = TimeTo.now()
     )
   }
 
   private def eventFor(state: OrderState, command: api.ReturnedOrderCommand) = {
     OrderReturned(
       orderId = command.orderId,
-      returnedUtc = Some(TimeTo.now())
+      returnedUtc = TimeTo.now()
     )
   }
 
   private def eventFor(state: OrderState, command: api.CanceledOrderCommand) = {
     OrderCancelled(
       orderId = command.orderId,
-      canceledUtc = Some(TimeTo.now())
+      canceledUtc = TimeTo.now()
     )
   }
 

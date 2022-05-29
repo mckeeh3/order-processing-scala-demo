@@ -9,29 +9,31 @@ class OrderItemApiSpec extends AnyWordSpec with Matchers {
 
   "OrderItemApi" should {
 
-    //"have example test that can be removed" in {
-      //val service = OrderItemApiTestKit(new OrderItemApi(_))
-      //pending
-      // use the testkit to execute a command
-      // and verify final updated state:
-      // val result = service.someOperation(SomeRequest)
-      // verify the reply
-      // val reply = result.getReply()
-      // reply shouldBe expectedReply
-      // verify the final state after the command
-      // service.currentState() shouldBe expectedState
-    //}
+    // "have example test that can be removed" in {
+    // val service = OrderItemApiTestKit(new OrderItemApi(_))
+    // pending
+    // use the testkit to execute a command
+    // and verify final updated state:
+    // val result = service.someOperation(SomeRequest)
+    // verify the reply
+    // val reply = result.getReply()
+    // reply shouldBe expectedReply
+    // verify the final state after the command
+    // service.currentState() shouldBe expectedState
+    // }
 
     "handle command CreateOrderItem" in {
       val testKit = OrderItemApiTestKit(new OrderItemApi(_))
-      val result = testKit.createOrderItem(api.CreateOrderItemCommand(
-        customerId = "customer-1",
-        orderId = "cart-1",
-        skuId = "sku-1",
-        skuName = "sku-name-1",
-        quantity = 1,
-        orderedUtc = Some(TimeTo.now())
-      ))
+      val result = testKit.createOrderItem(
+        api.CreateOrderItemCommand(
+          customerId = "customer-1",
+          orderId = "cart-1",
+          skuId = "sku-1",
+          skuName = "sku-name-1",
+          quantity = 1,
+          orderedUtc = TimeTo.now()
+        )
+      )
       assert(result.isReply)
 
       val state = testKit.currentState()
@@ -46,19 +48,23 @@ class OrderItemApiSpec extends AnyWordSpec with Matchers {
 
     "handle command ShippedOrderItem" in {
       val testKit = OrderItemApiTestKit(new OrderItemApi(_))
-      testKit.createOrderItem(api.CreateOrderItemCommand(
-        customerId = "customer-1",
-        orderId = "cart-1",
-        skuId = "sku-1",
-        skuName = "sku-name-1",
-        quantity = 1,
-        orderedUtc = Some(TimeTo.now())
-      ))
-      val result = testKit.shippedOrderItem(api.ShippedOrderItemCommand(
-        orderId = "cart-1",
-        skuId = "sku-1",
-        shippedUtc = Some(TimeTo.now())
-      ))
+      testKit.createOrderItem(
+        api.CreateOrderItemCommand(
+          customerId = "customer-1",
+          orderId = "cart-1",
+          skuId = "sku-1",
+          skuName = "sku-name-1",
+          quantity = 1,
+          orderedUtc = TimeTo.now()
+        )
+      )
+      val result = testKit.shippedOrderItem(
+        api.ShippedOrderItemCommand(
+          orderId = "cart-1",
+          skuId = "sku-1",
+          shippedUtc = TimeTo.now()
+        )
+      )
       assert(result.isReply)
 
       val state = testKit.currentState()
@@ -80,8 +86,9 @@ class OrderItemApiSpec extends AnyWordSpec with Matchers {
           skuId = "sku-1",
           skuName = "sku-name-1",
           quantity = 1,
-          orderedUtc = Some(TimeTo.now())
-      ))
+          orderedUtc = TimeTo.now()
+        )
+      )
       val result = testKit.getOrderItem(
         api.GetOrderItemRequest(
           orderId = "order-1",

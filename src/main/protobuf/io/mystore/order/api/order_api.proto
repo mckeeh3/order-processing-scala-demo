@@ -47,14 +47,15 @@ service OrderService {
     };
   }
 
-  rpc ShippedOrderItem(ShippedOrderSkuCommand) returns (google.protobuf.Empty) {
+  rpc ShippedOrderItem(ShippedAllOrderSkusCommand)
+      returns (google.protobuf.Empty) {
     option (google.api.http) = {
       put : "/order/{order_id}/shipped-order-sku"
       body : "*"
     };
   }
 
-  rpc ReleasedOrderItem(ReleasedOrderSkuCommand)
+  rpc ReleasedOrderItem(ReleasedOrderItemCommand)
       returns (google.protobuf.Empty) {
     option (google.api.http) = {
       put : "/order/{order_id}/released-order-sku"
@@ -103,13 +104,13 @@ message ReleasedOrderCommand {
   string order_id = 1 [ (kalix.field).entity_key = true ];
 }
 
-message ShippedOrderSkuCommand {
+message ShippedAllOrderSkusCommand {
   string order_id = 1 [ (kalix.field).entity_key = true ];
   string sku_id = 2;
   google.protobuf.Timestamp shipped_utc = 3;
 }
 
-message ReleasedOrderSkuCommand {
+message ReleasedOrderItemCommand {
   string order_id = 1 [ (kalix.field).entity_key = true ];
   string sku_id = 2;
 }

@@ -53,7 +53,7 @@ class OrderItemApi(context: ValueEntityContext) extends AbstractOrderItemApi {
   }
 
   private def updateState(state: OrderItemState, command: api.ShippedOrderItemCommand): OrderItemState = {
-    state.copy(shippedUtc = Some(TimeTo.now()))
+    state.copy(shippedUtc = TimeTo.now())
   }
 
   private def toApi(state: OrderItemState): api.GetOrderItemResponse = {
