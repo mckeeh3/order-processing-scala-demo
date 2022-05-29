@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package io.mystore.order.view;
+
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "kalix/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "io/mystore/order/entity/order_entity.proto";
+import "io/mystore/order/view/order.proto";
+
+service OrdersByDate {
+  option (kalix.codegen) = {
+    view : {}
+  };
+
+  rpc GetOrdersByDate(OrdersByDateRequest) returns (OrdersByDateResponse) {
+    option (kalix.method).view.query = {
+      query : "SELECT * AS orders"
+              "  FROM orders_by_date"
+              " WHERE ordered_utc >= :from_date"
+              "   AND ordered_utc < :to_date"
+    };
+    option (google.api.http) = {
+      get : "/orders-by-date"
+    };
+  }
+
+  rpc OnOrdered(entity.OrderCreated) returns (Order) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order"
+    };
+    option (kalix.method).view.update = {
+      table : "orders_by_date"
+      transform_updates : true
+    };
+  }
+
+  rpc OnOrderShipped(entity.OrderShipped) returns (Order) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order"
+    };
+    option (kalix.method).view.update = {
+      table : "orders_by_date"
+      transform_updates : true
+    };
+  }
+
+  rpc OnOrderItemShipped(entity.OrderItemShipped) returns (Order) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order"
+    };
+    option (kalix.method).view.update = {
+      table : "orders_by_date"
+      transform_updates : true
+    };
+  }
+
+  rpc IgnoreOtherEvents(google.protobuf.Any) returns (Order) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order"
+    };
+    option (kalix.method).view.update = {
+      table : "orders_by_date"
+      transform_updates : true
+    };
+  }
+}
+
+message OrdersByDateRequest {
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message OrdersByDateResponse { repeated Order orders = 1; }

@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package io.mystore.order.view;
+
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "io/mystore/order/entity/order_item_entity.proto";
+import "io/mystore/order/view/ordered_item.proto";
+
+service OrderedItemsBySkuByDate {
+  option (kalix.codegen) = {
+    view : {}
+  };
+
+  rpc GetOrderedItemsBySkuByDate(OrderedItemsBySkuByDateRequest)
+      returns (OrderedItemsBySkuByDateResponse) {
+    option (kalix.method).view.query = {
+      query : "SELECT * AS ordered_items"
+              "  FROM ordered_items"
+              " WHERE sku_id = :sku_id"
+              "   AND ordered_utc >= :from_date"
+              "   AND ordered_utc < :to_date"
+    };
+    option (google.api.http) = {
+      get : "/ordered-items-by-sku-by-date"
+    };
+  }
+
+  rpc OnOrdered(entity.OrderItemState) returns (OrderedItem) {
+    option (kalix.method).eventing.in = {
+      value_entity : "order_item"
+    };
+    option (kalix.method).view.update = {
+      table : "ordered_items"
+      transform_updates : true
+    };
+  }
+
+  rpc IgnoreOtherEvents(google.protobuf.Any) returns (OrderedItem) {
+    option (kalix.method).eventing.in = {
+      value_entity : "order_item"
+    };
+    option (kalix.method).view.update = {
+      table : "ordered_items"
+      transform_updates : true
+    };
+  }
+}
+
+message OrderedItemsBySkuByDateRequest {
+  string sku_id = 1;
+  google.protobuf.Timestamp from_date = 2;
+  google.protobuf.Timestamp to_date = 3;
+}
+
+message OrderedItemsBySkuByDateResponse {
+  repeated OrderedItem ordered_items = 1;
+}

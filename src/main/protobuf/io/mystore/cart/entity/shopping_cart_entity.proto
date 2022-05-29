@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package io.mystore.cart.entity;
+
+message ItemAdded {
+  string cart_id = 1;
+  string customer_id = 2;
+  LineItem line_item = 3;
+}
+
+message ItemChanged {
+  string cart_id = 1;
+  string sku_id = 2;
+  int32 quantity = 3;
+}
+
+message ItemRemoved {
+  string cart_id = 1;
+  string sku_id = 2;
+}
+
+message CartCheckedOut { CartState cart_state = 1; }
+
+message CartDeleted {
+  string cart_id = 1;
+  google.protobuf.Timestamp deleted_utc = 2;
+}
+
+message CartState {
+  string cart_id = 1;
+  string customer_id = 2;
+  google.protobuf.Timestamp checked_out_utc = 3;
+  google.protobuf.Timestamp deleted_utc = 4;
+  repeated LineItem line_items = 5;
+}
+
+message LineItem {
+  string sku_id = 1;
+  string sku_name = 2;
+  int32 quantity = 3;
+}

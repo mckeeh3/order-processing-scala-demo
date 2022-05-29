@@ -1,0 +1,109 @@
+syntax = "proto3";
+
+import "kalix/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+package io.mystore.cart.api;
+
+service ShoppingCartService {
+  option (kalix.codegen) = {
+    event_sourced_entity : {
+      name : "io.mystore.cart.entity.ShoppingCart"
+      entity_type : "shopping_cart"
+      state : "io.mystore.cart.entity.CartState"
+      events : [
+        "io.mystore.cart.entity.ItemAdded",
+        "io.mystore.cart.entity.ItemChanged",
+        "io.mystore.cart.entity.ItemRemoved",
+        "io.mystore.cart.entity.CartCheckedOut",
+        "io.mystore.cart.entity.CartDeleted" // force line breaks
+      ]
+    }
+  };
+
+  rpc AddItem(AddLineItemCommand) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/cart/{cart_id}/items/add"
+      body : "*"
+    };
+  }
+
+  rpc ChangeItem(ChangeLineItemCommand) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put : "/cart/{cart_id}/items/{sku_id}/change"
+      body : "*"
+    };
+  }
+
+  rpc RemoveItem(RemoveLineItemCommand) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/cart/{cart_id}/items/{sku_id}/remove"
+    };
+  }
+
+  rpc CheckoutCart(CheckoutShoppingCartCommand)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put : "/cart/{cart_id}/checkout"
+    };
+  }
+
+  rpc DeleteCart(DeleteShoppingCartCommand) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/cart/{cart_id}/delete"
+    };
+  }
+
+  rpc GetCart(GetShoppingCartRequest) returns (ShoppingCart) {
+    option (google.api.http) = {
+      get : "/cart/{cart_id}"
+    };
+  }
+}
+
+message AddLineItemCommand {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+  string customer_id = 2;
+  string sku_id = 3;
+  string sku_name = 4;
+  int32 quantity = 5;
+}
+
+message ChangeLineItemCommand {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+  string sku_id = 2;
+  int32 quantity = 3;
+}
+
+message RemoveLineItemCommand {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+  string sku_id = 2;
+}
+
+message CheckoutShoppingCartCommand {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+}
+
+message DeleteShoppingCartCommand {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+}
+
+message GetShoppingCartRequest {
+  string cart_id = 1 [ (kalix.field).entity_key = true ];
+}
+
+message ShoppingCart {
+  string cart_id = 1;
+  string customer_id = 2;
+  google.protobuf.Timestamp checked_out_utc = 3;
+  google.protobuf.Timestamp deleted_utc = 4;
+  repeated LineItem line_items = 5;
+}
+
+message LineItem {
+  string sku_id = 1;
+  string sku_name = 2;
+  int32 quantity = 3;
+}

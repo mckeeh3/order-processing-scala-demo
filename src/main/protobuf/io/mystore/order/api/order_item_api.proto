@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+import "kalix/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+package io.mystore.order.api;
+
+service OrderItemService {
+  option (kalix.codegen) = {
+    value_entity : {
+      name : "io.mystore.order.entity.OrderItemApi"
+      entity_type : "order_item"
+      state : "io.mystore.order.entity.OrderItemState" //
+    }
+  };
+
+  rpc CreateOrderItem(CreateOrderItemCommand) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/order-items/{order_id}/{sku_id}/create"
+      body : "*"
+    };
+  }
+
+  rpc ShippedOrderItem(ShippedOrderItemCommand)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/order-items/{order_id}/{sku_id}/ship"
+      body : "*"
+    };
+  }
+
+  rpc GetOrderItem(GetOrderItemRequest) returns (GetOrderItemResponse) {
+    option (google.api.http) = {
+      get : "/order-items/{order_id}/{sku_id}"
+    };
+  }
+}
+
+message CreateOrderItemCommand {
+  string customer_id = 1;
+  string order_id = 2 [ (kalix.field).entity_key = true ];
+  string sku_id = 3 [ (kalix.field).entity_key = true ];
+  string sku_name = 4;
+  int32 quantity = 5;
+  google.protobuf.Timestamp ordered_utc = 6;
+}
+
+message ShippedOrderItemCommand {
+  string order_id = 1 [ (kalix.field).entity_key = true ];
+  string sku_id = 2 [ (kalix.field).entity_key = true ];
+  google.protobuf.Timestamp shipped_utc = 3;
+}
+
+message GetOrderItemRequest {
+  string order_id = 1 [ (kalix.field).entity_key = true ];
+  string sku_id = 2 [ (kalix.field).entity_key = true ];
+}
+
+message GetOrderItemResponse {
+  string customer_id = 1;
+  string order_id = 2;
+  string sku_id = 3;
+  string sku_name = 4;
+  int32 quantity = 5;
+  google.protobuf.Timestamp ordered_utc = 6;
+  google.protobuf.Timestamp shipped_utc = 7;
+}

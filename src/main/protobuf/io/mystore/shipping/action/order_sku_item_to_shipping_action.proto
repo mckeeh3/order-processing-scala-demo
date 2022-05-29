@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package io.mystore.shipping.action;
+
+import "kalix/annotations.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+import "io/mystore/shipping/entity/order_sku_item_entity.proto";
+
+service OrderSkuItemToShipping {
+  option (kalix.codegen) = {
+    action : {}
+  };
+
+  rpc OnStockRequestedJoinToOrderAccepted(
+      entity.StockRequestedJoinToOrderAccepted)
+      returns (google.protobuf.Empty) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order_sku_item"
+    };
+  }
+
+  rpc OnStockRequestedJoinToOrderRejected(
+      entity.StockRequestedJoinToOrderRejected)
+      returns (google.protobuf.Empty) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order_sku_item"
+    };
+  }
+
+  rpc OnOrderRequestedJoinToStockAccepted(
+      entity.OrderRequestedJoinToStockAccepted)
+      returns (google.protobuf.Empty) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order_sku_item"
+    };
+  }
+
+  rpc OnOrderRequestedJoinToStockRejected(
+      entity.OrderRequestedJoinToStockRejected)
+      returns (google.protobuf.Empty) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order_sku_item"
+    };
+  }
+
+  rpc IgnoreOtherEvents(google.protobuf.Any) returns (google.protobuf.Empty) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "order_sku_item"
+    };
+  }
+}

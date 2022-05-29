@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package io.mystore.stock.view;
+
+import "kalix/annotations.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "io/mystore/stock/entity/stock_sku_item_entity.proto";
+import "io/mystore/stock/view/stock_sku_items_model.proto";
+
+service StockSkuItemsShipped {
+  option (kalix.codegen) = {
+    view : {}
+  };
+
+  rpc GetStockSkuItemsShipped(GetStockSkuItemsShippedRequest)
+      returns (GetStockSkuItemsShippedResponse) {
+    option (kalix.method).view.query = {
+      query : "SELECT * AS stock_sku_items"
+              "  FROM stock_sku_items_shipped"
+              " WHERE sku_id = :sku_id"
+              "   AND shipped_utc.seconds > 0"
+    };
+    option (google.api.http) = {
+      get : "/stock-sku-items-shipped"
+    };
+  }
+
+  rpc OnStockSkuItemCreated(entity.StockSkuItemCreated) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+
+  rpc OnOrderRequestedJoinToStockAccepted(
+      entity.OrderRequestedJoinToStockAccepted) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+
+  rpc OnOrderRequestedJoinToStockRejected(
+      entity.OrderRequestedJoinToStockRejected) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+
+  rpc OnStockRequestedJoinToOrderAccepted(
+      entity.StockRequestedJoinToOrderAccepted) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+
+  rpc OnStockRequestedJoinToOrderRejected(
+      entity.StockRequestedJoinToOrderRejected) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+
+  rpc IgnoreOtherEvents(google.protobuf.Any) returns (StockSkuItem) {
+    option (kalix.method).eventing.in = {
+      event_sourced_entity : "stock_sku_item"
+    };
+    option (kalix.method).view.update = {
+      table : "stock_sku_items_shipped"
+      transform_updates : true
+    };
+  }
+}
+
+message GetStockSkuItemsShippedRequest { string sku_id = 1; }
+
+message GetStockSkuItemsShippedResponse {
+  repeated StockSkuItem stock_sku_items = 1;
+}
