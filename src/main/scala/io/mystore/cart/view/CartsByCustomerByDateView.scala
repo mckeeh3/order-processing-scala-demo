@@ -15,26 +15,20 @@ import kalix.scalasdk.view.ViewContext
 
 class CartsByCustomerByDateView(context: ViewContext) extends AbstractCartsByCustomerByDateView {
 
-  override def emptyState: Cart =
-    throw new UnsupportedOperationException("Not implemented yet, replace with your empty view state")
+  override def emptyState: Cart = Cart.defaultInstance
 
-  override def onItemAdded(
-    state: Cart, itemAdded: ItemAdded): UpdateEffect[Cart] =
-    throw new UnsupportedOperationException("Update handler for 'OnItemAdded' not implemented yet")
+  override def onItemAdded(state: Cart, event: ItemAdded): UpdateEffect[Cart] =
+    effects.updateState(CartEventHandler.handle(state, event))
 
-  override def onItemChanged(
-    state: Cart, itemChanged: ItemChanged): UpdateEffect[Cart] =
-    throw new UnsupportedOperationException("Update handler for 'OnItemChanged' not implemented yet")
+  override def onItemChanged(state: Cart, event: ItemChanged): UpdateEffect[Cart] =
+    effects.updateState(CartEventHandler.handle(state, event))
 
-  override def onItemRemoved(
-    state: Cart, itemRemoved: ItemRemoved): UpdateEffect[Cart] =
-    throw new UnsupportedOperationException("Update handler for 'OnItemRemoved' not implemented yet")
+  override def onItemRemoved(state: Cart, event: ItemRemoved): UpdateEffect[Cart] =
+    effects.updateState(CartEventHandler.handle(state, event))
 
-  override def onCartCheckedOut(
-    state: Cart, cartCheckedOut: CartCheckedOut): UpdateEffect[Cart] =
-    throw new UnsupportedOperationException("Update handler for 'OnCartCheckedOut' not implemented yet")
+  override def onCartCheckedOut(state: Cart, event: CartCheckedOut): UpdateEffect[Cart] =
+    effects.updateState(CartEventHandler.handle(state, event))
 
-  override def onCartDeleted(
-    state: Cart, cartDeleted: CartDeleted): UpdateEffect[Cart] =
-    throw new UnsupportedOperationException("Update handler for 'OnCartDeleted' not implemented yet")
+  override def onCartDeleted(state: Cart, event: CartDeleted): UpdateEffect[Cart] =
+    effects.updateState(CartEventHandler.handle(state, event))
 }

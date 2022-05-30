@@ -185,12 +185,12 @@ class ShoppingCart(context: EventSourcedEntityContext) extends AbstractShoppingC
 
   private def updateState(state: CartState, event: CartCheckedOut): CartState = {
     state
-      .copy(checkedOutUtc = TimeTo.now())
+      .copy(checkedOutUtc = event.cartState.get.checkedOutUtc)
   }
 
   private def updateState(state: CartState, event: CartDeleted): CartState = {
     state
-      .copy(deletedUtc = TimeTo.now())
+      .copy(deletedUtc = event.deletedUtc)
   }
 
   private def eventFor(state: CartState, command: api.AddLineItemCommand): ItemAdded = {
@@ -224,13 +224,18 @@ class ShoppingCart(context: EventSourcedEntityContext) extends AbstractShoppingC
 
   private def eventFor(state: CartState, command: api.CheckoutShoppingCartCommand): CartCheckedOut = {
     CartCheckedOut(
-      cartState = Some(state)
+      cartState = Some(
+        state.copy(
+          checkedOutUtc = TimeTo.now()
+        )
+      )
     )
   }
 
   private def eventFor(state: CartState, command: api.DeleteShoppingCartCommand): CartDeleted = {
     CartDeleted(
-      cartId = command.cartId
+      cartId = command.cartId,
+      deletedUtc = TimeTo.now()
     )
   }
 
