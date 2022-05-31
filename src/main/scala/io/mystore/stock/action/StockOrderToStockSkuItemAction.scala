@@ -1,6 +1,6 @@
 package io.mystore.stock.action
 
-import com.google.protobuf.any.{ Any => ScalaPbAny }
+import com.google.protobuf.any.{Any => ScalaPbAny}
 import com.google.protobuf.empty.Empty
 import io.mystore.stock.entity.StockOrderCreated
 import kalix.scalasdk.action.Action
@@ -16,8 +16,8 @@ class StockOrderToStockSkuItemAction(creationContext: ActionCreationContext) ext
   override def onStockOrderCreated(stockOrderCreated: StockOrderCreated): Action.Effect[Empty] = {
     throw new RuntimeException("The command handler for `OnStockOrderCreated` is not implemented, yet")
   }
+
   override def ignoreOtherEvents(any: ScalaPbAny): Action.Effect[Empty] = {
-    throw new RuntimeException("The command handler for `IgnoreOtherEvents` is not implemented, yet")
+    effects.reply(Empty.defaultInstance)
   }
 }
-

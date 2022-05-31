@@ -1,6 +1,6 @@
 package io.mystore.stock.action
 
-import com.google.protobuf.any.{ Any => ScalaPbAny }
+import com.google.protobuf.any.{Any => ScalaPbAny}
 import com.google.protobuf.empty.Empty
 import io.mystore.shipping.entity.OrderRequestedJoinToStock
 import io.mystore.shipping.entity.OrderRequestedJoinToStockRejected
@@ -19,17 +19,20 @@ class OrderSkuItemToStockSkuItemAction(creationContext: ActionCreationContext) e
   override def onOrderRequestedJoinToStock(orderRequestedJoinToStock: OrderRequestedJoinToStock): Action.Effect[Empty] = {
     throw new RuntimeException("The command handler for `OnOrderRequestedJoinToStock` is not implemented, yet")
   }
+
   override def onOrderRequestedJoinToStockRejected(orderRequestedJoinToStockRejected: OrderRequestedJoinToStockRejected): Action.Effect[Empty] = {
     throw new RuntimeException("The command handler for `OnOrderRequestedJoinToStockRejected` is not implemented, yet")
   }
+
   override def onStockRequestedJoinToOrderAccepted(stockRequestedJoinToOrderAccepted: StockRequestedJoinToOrderAccepted): Action.Effect[Empty] = {
     throw new RuntimeException("The command handler for `OnStockRequestedJoinToOrderAccepted` is not implemented, yet")
   }
+
   override def onStockRequestedJoinToOrderRejected(stockRequestedJoinToOrderRejected: StockRequestedJoinToOrderRejected): Action.Effect[Empty] = {
     throw new RuntimeException("The command handler for `OnStockRequestedJoinToOrderRejected` is not implemented, yet")
   }
+
   override def ignoreOtherEvents(any: ScalaPbAny): Action.Effect[Empty] = {
-    throw new RuntimeException("The command handler for `IgnoreOtherEvents` is not implemented, yet")
+    effects.reply(Empty.defaultInstance)
   }
 }
-

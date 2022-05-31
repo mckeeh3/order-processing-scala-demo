@@ -17,9 +17,7 @@ import io.mystore.cart.entity.CartState
 class CartToOrderAction(creationContext: ActionCreationContext) extends AbstractCartToOrderAction {
 
   override def onCartCheckedOut(cartCheckedOut: CartCheckedOut): Action.Effect[Empty] = {
-    val createOrderCommand = components.order.createOrder(toCreateOrderCommand(cartCheckedOut.cartState.get))
-
-    effects.forward(createOrderCommand)
+    effects.forward(components.order.createOrder(toCreateOrderCommand(cartCheckedOut.cartState.get)))
   }
 
   override def ignoreOtherEvents(any: ScalaPbAny): Action.Effect[Empty] = {
